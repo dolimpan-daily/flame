@@ -3,10 +3,9 @@ import 'dart:ui';
 
 import 'package:flame/cache.dart';
 import 'package:flame/extensions.dart';
-import 'package:flame/flame.dart';
 import 'package:flame/game.dart';
 import 'package:flutter/widgets.dart' show WidgetsBinding;
-import 'package:flutter_svg/flutter_svg.dart';
+import 'package:vector_graphics/vector_graphics.dart';
 
 /// A [Svg] to be rendered on a Flame [Game].
 class Svg {
@@ -32,24 +31,18 @@ class Svg {
 
   final _paint = Paint()..filterQuality = FilterQuality.medium;
 
-  /// Loads an [Svg] with the received [cache]. When no [cache] is provided,
-  /// the global [Flame.assets] is used.
+  /// Loads an [Svg] from a pre-compiled vector graphics file (.svg.vec).
+  ///
+  /// The [fileName] should be the path to a pre-compiled .svg.vec file.
+  /// Use `vector_graphics_compiler` to compile SVG files:
+  /// ```bash
+  /// dart run vector_graphics_compiler -i input.svg -o output.svg.vec
+  /// ```
   static Future<Svg> load(
     String fileName, {
-    AssetsCache? cache,
     double? pixelRatio,
   }) async {
-    cache ??= Flame.assets;
-    final svgString = await cache.readFile(fileName);
-    return Svg.loadFromString(svgString, pixelRatio: pixelRatio);
-  }
-
-  /// Loads an [Svg] from a string.
-  static Future<Svg> loadFromString(
-    String svgString, {
-    double? pixelRatio,
-  }) async {
-    final pictureInfo = await vg.loadPicture(SvgStringLoader(svgString), null);
+    final pictureInfo = await vg.loadPicture(AssetBytesLoader(fileName), null);
     return Svg(
       pictureInfo,
       pixelRatio: pixelRatio,
@@ -147,6 +140,6 @@ class Svg {
 
 /// Provides a loading method for [Svg] on the [Game] class.
 extension SvgLoader on Game {
-  /// Loads an [Svg] using the [Game]'s own asset loader.
-  Future<Svg> loadSvg(String fileName) => Svg.load(fileName, cache: assets);
+  /// Loads an [Svg] from a pre-compiled vector graphics file (.svg.vec).
+  Future<Svg> loadSvg(String fileName) => Svg.load(fileName);
 }
